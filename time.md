@@ -13,7 +13,7 @@ platforms: mingw, linux, osx
 `time.sleep(s)`           sleep with sub-second precision (~10-100ms)
 ------------------------- ----------------------------------------------------
 
-### Notes
+## Notes
 
 `time.time()` times are UNIX timestamps and are compatible with `os.time()`
 times on all platforms. They read the wall-clock time and are thus
