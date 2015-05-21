@@ -7,11 +7,13 @@ platforms: mingw, linux, osx
 
 ## API
 
------------------------ ------------------------------------------------------
-time.time() -> t        wall clock time with ~100us precision
-time.clock() -> k       monotonic time in seconds with ~1us precision
-time.sleep(s)           sleep with sub-second precision (~10-100ms)
------------------------ ------------------------------------------------------
+------------------------- ----------------------------------------------------
+`time.time() -> t`        wall clock time with ~100us precision
+`time.clock() -> k`       monotonic time in seconds with ~1us precision
+`time.sleep(s)`           sleep with sub-second precision (~10-100ms)
+------------------------- ----------------------------------------------------
+
+### Notes
 
 `time.time()` times are UNIX timestamps and are compatible with `os.time()`
 times on all platforms. They read the wall-clock time and are thus
