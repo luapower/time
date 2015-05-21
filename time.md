@@ -15,12 +15,14 @@ platforms: mingw, linux, osx
 
 ## Notes
 
-`time.time()` times are UNIX timestamps and are compatible with `os.time()`
-times on all platforms. They read the wall-clock time and are thus
-affected by drifting, leap seconds and time adjustments by the user.
-They are not affected by timezones. They can be used to synchronize time
-between different boxes on a network regardless of platform.
+`time.time()` reads the wall-clock time as a UNIX timestamp.
+It is the same as the time returned by `os.time()` on all platforms,
+except it has sub-second precision. It is affected by drifting,
+leap seconds and time adjustments by the user. It is not affected
+by timezones. It can be used to synchronize time between different
+boxes on a network regardless of platform.
 
-`time.clock()` times are more accurate, never go back or drift,
-but they don't have a fixed time base between program executions.
-They can be used for measuring short time intervals.
+`time.clock()` reads a monotonic performance counter, and is thus
+more accurate, it should never go back or drift, but it doesn't have
+a fixed time base between program executions. It can be used
+for measuring short time intervals for thread synchronization, etc.
