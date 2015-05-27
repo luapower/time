@@ -24,5 +24,5 @@ boxes on a network regardless of platform.
 
 `time.clock()` reads a monotonic performance counter, and is thus
 more accurate, it should never go back or drift, but it doesn't have
-a fixed time base between program executions. It can be used
+a fixed or specified time base between program executions. It can be used
 for measuring short time intervals for thread synchronization, etc.
