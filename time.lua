@@ -10,30 +10,30 @@ local C = ffi.C
 if ffi.os == 'Windows' then
 
 	ffi.cdef[[
-	void GetSystemTimeAsFileTime(uint64_t*);
-	int  QueryPerformanceCounter(int64_t*);
-	int  QueryPerformanceFrequency(int64_t*);
-	void Sleep(uint32_t ms);
+	void time_GetSystemTimeAsFileTime(uint64_t*) asm("GetSystemTimeAsFileTime");
+	int  time_QueryPerformanceCounter(int64_t*) asm("QueryPerformanceCounter");
+	int  time_QueryPerformanceFrequency(int64_t*) asm("QueryPerformanceFrequency");
+	void time_Sleep(uint32_t ms) asm("Sleep");
 	]]
 
 	local t = ffi.new'uint64_t[1]'
 	local DELTA_EPOCH_IN_100NS = 116444736000000000ULL
 
 	function M.time()
-		C.GetSystemTimeAsFileTime(t)
+		C.time_GetSystemTimeAsFileTime(t)
 		return tonumber(t[0] - DELTA_EPOCH_IN_100NS) / 10^7
 	end
 
-	assert(C.QueryPerformanceFrequency(t) ~= 0)
+	assert(C.time_QueryPerformanceFrequency(t) ~= 0)
 	local qpf = tonumber(t[0])
 
 	function M.clock()
-		assert(C.QueryPerformanceCounter(t) ~= 0)
+		assert(C.time_QueryPerformanceCounter(t) ~= 0)
 		return tonumber(t[0]) / qpf
 	end
 
 	function M.sleep(s)
-		C.Sleep(s * 1000)
+		C.time_Sleep(s * 1000)
 	end
 
 elseif ffi.os == 'Linux' or ffi.os == 'OSX' then
@@ -42,22 +42,22 @@ elseif ffi.os == 'Linux' or ffi.os == 'OSX' then
 	typedef struct {
 		long s;
 		long ns;
-	} t_timespec;
+	} time_timespec;
 
-	int nanosleep(t_timespec*, t_timespec *);
+	int time_nanosleep(time_timespec*, time_timespec *) asm("nanosleep");
 	]]
 
 	local EINTR = 4
 
-	local t = ffi.new't_timespec'
+	local t = ffi.new'time_timespec'
 
 	function M.sleep(s)
 		local int, frac = math.modf(s)
 		t.s = int
 		t.ns = frac * 10^9
-		local ret = C.nanosleep(t, t)
+		local ret = C.time_nanosleep(t, t)
 		while ret == -1 and ffi.errno() == EINTR do --interrupted
-			ret = C.nanosleep(t, t)
+			ret = C.time_nanosleep(t, t)
 		end
 		assert(ret == 0)
 	end
@@ -65,13 +65,13 @@ elseif ffi.os == 'Linux' or ffi.os == 'OSX' then
 	if ffi.os == 'Linux' then
 
 		ffi.cdef[[
-		int clock_gettime(int clock_id, t_timespec *tp);
+		int time_clock_gettime(int clock_id, time_timespec *tp) asm("clock_gettime");
 		]]
 
 		local CLOCK_REALTIME = 0
 		local CLOCK_MONOTONIC = 1
 
-		local clock_gettime = ffi.load'rt'.clock_gettime
+		local clock_gettime = ffi.load'rt'.time_clock_gettime
 
 		local function tos(t)
 			return tonumber(t.s) + tonumber(t.ns) / 10^9
@@ -93,32 +93,32 @@ elseif ffi.os == 'Linux' or ffi.os == 'OSX' then
 		typedef struct {
 			long    s;
 			int32_t us;
-		} t_timeval;
+		} time_timeval;
 
 		typedef struct {
 			uint32_t numer;
 			uint32_t denom;
-		} t_mach_timebase_info_data_t;
+		} time_mach_timebase_info_data_t;
 
-		int      gettimeofday(t_timeval*, void*);
-		int      mach_timebase_info(t_mach_timebase_info_data_t* info);
-		uint64_t mach_absolute_time(void);
+		int      time_gettimeofday(time_timeval*, void*) asm("gettimeofday");
+		int      time_mach_timebase_info(time_mach_timebase_info_data_t* info) asm("mach_timebase_info");
+		uint64_t time_mach_absolute_time(void) asm("mach_absolute_time");
 		]]
 
-		local t = ffi.new't_timeval'
+		local t = ffi.new'time_timeval'
 
 		function M.time()
-			assert(C.gettimeofday(t, nil) == 0)
+			assert(C.time_gettimeofday(t, nil) == 0)
 			return tonumber(t.s) + tonumber(t.us) / 10^6
 		end
 
 		--NOTE: this appears to be pointless on Intel Macs. The timebase fraction
 		--is always 1/1 and mach_absolute_time() does dynamic scaling internally.
-		local timebase = ffi.new't_mach_timebase_info_data_t'
-		assert(C.mach_timebase_info(timebase) == 0)
+		local timebase = ffi.new'time_mach_timebase_info_data_t'
+		assert(C.time_mach_timebase_info(timebase) == 0)
 		local scale = tonumber(timebase.numer) / tonumber(timebase.denom) / 10^9
 		function M.clock()
-			return tonumber(C.mach_absolute_time()) * scale
+			return tonumber(C.time_mach_absolute_time()) * scale
 		end
 
 	end --OSX
