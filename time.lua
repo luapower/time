@@ -136,7 +136,7 @@ if not ... then
 		local t0 = time.clock()
 		local times = math.floor(s*1/ss)
 		s = times * ss
-		print(string.format('sleeping %gms in %gms increments (%d times)...', s, ss * 1000, times))
+		print(string.format('sleeping %gms in %gms increments (%d times)...', s * 1000, ss * 1000, times))
 		for i=1,times do
 			time.sleep(ss)
 		end
