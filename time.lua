@@ -125,6 +125,42 @@ elseif ffi.os == 'Linux' or ffi.os == 'OSX' then
 
 end --Linux or OSX
 
+function M.install()
+
+	--replace os.time() with a more accurate version...
+	--glue.time() will also benefit.
+	local os_time = os.time
+	local time = M.time
+	function os.time(t)
+		if not t then return time() end
+		return os_time(t)
+	end
+
+	--replace os.date() with a more accurate version...
+	local os_date = os.date
+	local time = M.time
+	function os.date(fmt, t)
+		if not t then
+			t = time()
+			local d = os_date(fmt)
+			pp(d)
+			do return end
+			if d then d.sec = d.sec + t - floor(t) end --increase accuracy in d.sec
+			return d
+		else
+			return os_date(fmt, t)
+		end
+	end
+
+	--replace os.clock() with a more accurate version...
+	local clock = M.clock
+	local t0 = clock()
+	function os.clock()
+		return clock() - t0
+	end
+
+end
+
 
 if not ... then
 	io.stdout:setvbuf'no'
