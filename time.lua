@@ -140,16 +140,12 @@ function M.install()
 	local os_date = os.date
 	local time = M.time
 	function os.date(fmt, t)
-		if not t then
-			t = time()
-			local d = os_date(fmt)
-			pp(d)
-			do return end
-			if d then d.sec = d.sec + t - floor(t) end --increase accuracy in d.sec
-			return d
-		else
-			return os_date(fmt, t)
+		t = t or time()
+		local d = os_date(fmt, t)
+		if type(d) == 'table' then
+			d.sec = d.sec + t - floor(t) --increase accuracy in d.sec
 		end
+		return d
 	end
 
 	--replace os.clock() with a more accurate version...
