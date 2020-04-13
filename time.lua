@@ -71,7 +71,8 @@ elseif ffi.os == 'Linux' or ffi.os == 'OSX' then
 		local CLOCK_REALTIME = 0
 		local CLOCK_MONOTONIC = 1
 
-		local clock_gettime = ffi.load'rt'.time_clock_gettime
+		local ok, rt_C = pcall(ffi.load, 'rt')
+		local clock_gettime = (ok and rt_C or C).time_clock_gettime
 
 		local function tos(t)
 			return tonumber(t.s) + tonumber(t.ns) / 1e9
